@@ -5,7 +5,7 @@ colorFrom: "red"
 colorTo: "orange"
 sdk: "gradio"
 sdk_version: "3.32.0"
-app_file: app.py
+app_file: main.py
 pinned: false
 ---
 
@@ -51,7 +51,7 @@ Then
 
 ```bash
 cd gradio-chatgpt-app
-gradio app.py
+gradio main.py
 ```
 
 Using `gradio` is great because it gives you hot reloading

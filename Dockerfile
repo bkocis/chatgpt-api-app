@@ -21,4 +21,4 @@ RUN apt-get update && \
 WORKDIR /opt/gradio-chatgpt-app
 EXPOSE 8083
 
-CMD ["gradio", "app.py"]
+CMD ["gradio", "main.py"]

@@ -99,12 +99,15 @@ def on_apply_settings_click(model_name: str, temperature: float):
 
 # some css why not, "borrowed" from https://huggingface.co/spaces/ysharma/Gradio-demo-streaming/blob/main/app.py
 css_string = """
-#col_container {width: 900px; margin-left: auto; margin-right: auto;}
+#col_container {width: 1200px; margin-left: auto; margin-right: auto;}
 #chatbot {height: 600px; overflow: auto;}
+footer {visibility: hidden}
 """
 page_subtitle = """
-<img src="https://dallery.gallery/wp-content/uploads/2022/08/spacef_large_summer_lake_panorama_mountains_5bdcade0-1a3f-43ac-b678-8634912c99ab.png.webp" alt="header" border="0" width="900">
-
+<center>
+<img src="https://dallery.gallery/wp-content/uploads/2022/08/
+spacef_large_summer_lake_panorama_mountains_5bdcade0-1a3f-43ac-b678-8634912c99ab.png.webp" alt="header" width="900">
+</center>
 <br>
 """
 help_page_header = """
@@ -114,8 +117,10 @@ Improve your prompt considering:
 <br>
 2. 
 """
+
 with gr.Blocks(
-        theme=gr.themes.Soft(),
+        title="ChatGPTapp",
+        theme=gr.themes.Soft(text_size="sm"),
         css=css_string,
         ) \
         as demo:
@@ -125,7 +130,7 @@ with gr.Blocks(
     chat = gr.State(None)
 
     with gr.Column(elem_id="col_container"):
-        gr.Markdown(page_subtitle)
+        gr.Markdown(page_subtitle, elem_id="centerImage")
         with gr.Tab("ChatGPT"):
             chatbot = gr.Chatbot(show_label=False)
             with gr.Row():
@@ -145,7 +150,7 @@ with gr.Blocks(
         with gr.Tab("Cheatsheet"):
             gr.Markdown(help_page_header)
         with gr.Tab("Settings"):
-            with gr.Accordion("Settings", open=True):
+            with gr.Column():
                 model_name = gr.Dropdown(
                     choices=MODELS_NAMES, value=MODELS_NAMES[0], label="model"
                 )
@@ -163,8 +168,7 @@ with gr.Blocks(
                     [model_name, temperature],
                     [chat, message, chatbot, messages],
                 )
-            with gr.Column():
-                clear = gr.Button("New chat")
+                clear = gr.Button("Reset chat")
                 clear.click(
                     on_clear_click,
                     [],
@@ -174,5 +178,6 @@ with gr.Blocks(
 
 
 demo.queue()
-demo.launch(debug=False,
-            server_name="0.0.0.0")
+demo.launch(
+    debug=False,
+    server_name="0.0.0.0")

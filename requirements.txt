@@ -2,7 +2,6 @@ openai
 gradio
 langchain
 python-dotenv
-black
-isort
+
 flake8
 pytest
