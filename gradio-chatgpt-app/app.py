@@ -1,23 +1,18 @@
 import logging
+import gradio as gr
 from pathlib import Path
 from typing import List, Optional, Tuple
-
-from dotenv import load_dotenv
-
-load_dotenv()
-
 from queue import Empty, Queue
 from threading import Thread
-
-import gradio as gr
-from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
+# from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import HumanMessagePromptTemplate
 from langchain.schema import AIMessage, BaseMessage, HumanMessage, SystemMessage
-
 from callback import QueueCallback
+from dotenv import load_dotenv
+load_dotenv()
 
-MODELS_NAMES = ["gpt-3.5-turbo", "gpt-4"]
+MODELS_NAMES = ["gpt-3.5-turbo"]
 DEFAULT_TEMPERATURE = 0.7
 
 ChatHistory = List[str]
@@ -35,7 +30,7 @@ def message_handler(
     chat: Optional[ChatOpenAI],
     message: str,
     chatbot_messages: ChatHistory,
-    messages: List[BaseMessage],
+    messages: List[BaseMessage]
 ) -> Tuple[ChatOpenAI, str, ChatHistory, List[BaseMessage]]:
     if chat is None:
         # in the queue we will store our streamed tokens
@@ -54,15 +49,14 @@ def message_handler(
     job_done = object()
 
     logging.info("asking question to GPT")
-    # let's add the messages to our stuff
     messages.append(HumanMessage(content=message))
     chatbot_messages.append((message, ""))
     # this is a little wrapper we need cuz we have to add the job_done
+
     def task():
         chat(messages)
         queue.put(job_done)
 
-    # now let's start a thread and run the generation inside it
     t = Thread(target=task)
     t.start()
     # this will hold the content as we generate
@@ -78,10 +72,9 @@ def message_handler(
             yield chat, "", chatbot_messages, messages
         except Empty:
             continue
-    # finally we can add our reply to messsages
     messages.append(AIMessage(content=content))
     logging.debug(f"reply = {content}")
-    logging.info(f"Done!")
+    logging.info("Done!")
     return chat, "", chatbot_messages, messages
 
 
@@ -105,46 +98,54 @@ def on_apply_settings_click(model_name: str, temperature: float):
 
 
 # some css why not, "borrowed" from https://huggingface.co/spaces/ysharma/Gradio-demo-streaming/blob/main/app.py
+css_string = """
+#col_container {width: 900px; margin-left: auto; margin-right: auto;}
+#chatbot {height: 600px; overflow: auto;}
+"""
+page_subtitle = """
+<img src="https://dallery.gallery/wp-content/uploads/2022/08/spacef_large_summer_lake_panorama_mountains_5bdcade0-1a3f-43ac-b678-8634912c99ab.png.webp" alt="header" border="0" width="900">
+
+<br>
+"""
+help_page_header = """
+Improve your prompt considering:
+<br>
+1. Give the model excessive information in addition to your prompt
+<br>
+2. 
+"""
 with gr.Blocks(
-    css="""
-    #col_container {width: 1200px; margin-left: auto; margin-right: auto;}
-    #chatbot {height: 600px; overflow: auto;}
-    """
-) as demo:
+        theme=gr.themes.Soft(),
+        css=css_string,
+        ) \
+        as demo:
     # here we keep our state so multiple user can use the app at the same time!
     messages = gr.State([system_message])
     # same thing for the chat, we want one chat per use so callbacks are unique I guess
     chat = gr.State(None)
 
     with gr.Column(elem_id="col_container"):
-        gr.Markdown("# Welcome to GradioGPT! 🌟🚀")
-        gr.Markdown("An easy to use template. It comes with state and settings managment")
-
-        chatbot = gr.Chatbot()
-        with gr.Row():
-            message = gr.Textbox(label="chat input")
-            message.submit(
-                message_handler,
-                [chat, message, chatbot, messages],
-                [chat, message, chatbot, messages],
-                queue=True,
-            )
-            # submit = gr.Button("Submit", variant="primary")
-            # submit.click(
-            #     message_handler,
-            #     [chat, message, chatbot, messages],
-            #     [chat, message, chatbot, messages],
-            # )
-        with gr.Row():
-            with gr.Column():
-                clear = gr.Button("Clear")
-                clear.click(
-                    on_clear_click,
-                    [],
-                    [message, chatbot, messages],
-                    queue=False,
+        gr.Markdown(page_subtitle)
+        with gr.Tab("ChatGPT"):
+            chatbot = gr.Chatbot(show_label=False)
+            with gr.Row():
+                message = gr.Textbox(show_label=False, placeholder="write input here")
+                message.submit(
+                    message_handler,
+                    [chat, message, chatbot, messages],
+                    [chat, message, chatbot, messages],
+                    queue=True,
                 )
-            with gr.Accordion("Settings", open=False):
+                # submit = gr.Button("Submit", variant="primary")
+                # submit.click(
+                #     message_handler,
+                #     [chat, message, chatbot, messages],
+                #     [chat, message, chatbot, messages],
+                # )
+        with gr.Tab("Cheatsheet"):
+            gr.Markdown(help_page_header)
+        with gr.Tab("Settings"):
+            with gr.Accordion("Settings", open=True):
                 model_name = gr.Dropdown(
                     choices=MODELS_NAMES, value=MODELS_NAMES[0], label="model"
                 )
@@ -162,6 +163,16 @@ with gr.Blocks(
                     [model_name, temperature],
                     [chat, message, chatbot, messages],
                 )
+            with gr.Column():
+                clear = gr.Button("New chat")
+                clear.click(
+                    on_clear_click,
+                    [],
+                    [message, chatbot, messages],
+                    queue=False,
+                )
+
 
 demo.queue()
-demo.launch()
+demo.launch(debug=False,
+            server_name="0.0.0.0")

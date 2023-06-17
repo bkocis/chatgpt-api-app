@@ -1,16 +1,35 @@
-.PHONY: style check_code_quality
+port=8083
+app_name=openai-chatgpt-gradio-app
 
-export PYTHONPATH = .
-check_dirs := .
+build_test:
+	flake8 --config=.flake8
+	@if [ $$? -eq 0 ]; then \
+		echo "Linting passed"; \
+	else \
+		echo "Linting failed"; \
+	fi
 
-style:
-	black  $(check_dirs)
-	isort --profile black $(check_dirs)
-
-check_code_quality:
-	black --check $(check_dirs)
-	isort --check-only --profile black $(check_dirs)
-	# stop the build if there are Python syntax errors or undefined names
-	flake8 $(check_dirs) --count --select=E9,F63,F7,F82 --show-source --statistics
-	# exit-zero treats all errors as warnings. E203 for black, E501 for docstring, W503 for line breaks before logical operators 
-	flake8 $(check_dirs) --count --max-line-length=88 --exit-zero  --ignore=D --extend-ignore=E203,E501,W503  --statistics
+	pytest
+	@if [ $$? -eq 0 ]; then \
+		echo "Tests passed"; \
+	else \
+		echo "Tests failed"; \
+	fi
+	docker build --tag=${app_name} --build-arg OPENAI_API_KEY=${OPENAI_API_KEY} .
+	docker run -p ${port}:${port} ${app_name}
+build_run:
+	docker build --tag=${app_name} --build-arg OPENAI_API_KEY=${OPENAI_API_KEY} .
+	docker run -p ${port}:${port} ${app_name}
+run_local:
+	docker run -p ${port}:${port} ${app_name}
+run_app:
+	gradio app.py
+deploy_headless:
+	docker build --tag=${app_name} --build-arg OPENAI_API_KEY=${OPENAI_API_KEY} .
+	docker run -dit -p ${port}:${port} ${app_name}
+git_push:
+	flake8
+	pytest
+	git add .
+	git commit -m "update run via makefile"
+	git push
