@@ -8,8 +8,7 @@ from threading import Thread
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import HumanMessagePromptTemplate
 from langchain.schema import AIMessage, BaseMessage, HumanMessage, SystemMessage
-# from callback import QueueCallback
-from chatgptApp.callback import QueueCallback
+from callback import QueueCallback
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -22,7 +21,7 @@ logging.basicConfig(
     format="[%(asctime)s %(levelname)s]: %(message)s", level=logging.INFO
 )
 # load up our system prompt
-system_message = SystemMessage(content=Path("chatgptApp/prompts/system.prompt").read_text())
+system_message = SystemMessage(content=Path("prompts/system.prompt").read_text())
 # for the human, we will just inject the text
 human_message_prompt_template = HumanMessagePromptTemplate.from_template("{text}")
 

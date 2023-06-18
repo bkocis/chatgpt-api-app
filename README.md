@@ -1,21 +1,16 @@
----
-title: "GradioGPT"
-emoji: "🚀"
-colorFrom: "red"
-colorTo: "orange"
-sdk: "gradio"
-sdk_version: "3.32.0"
-app_file: main.py
-pinned: false
----
+### Gradio app streaming prompt completion with OpenAI API
 
-# GradioGPT
-A perfect starting template for your amazing new shiny GPT application that comes with a gradio demo
+----
 
-[gradioGPT.webm](https://github.com/FrancescoSaverioZuppichini/gradioGPT/assets/15908060/f5a23581-88bf-4129-9d28-a47beeae1bdf)
+## About
 
+<img src="docs/images/chat_tab.png" width="400" />
 
-## 🔥 Features
+Multiple tabs for accessing different models and settings
+
+<img src="docs/images/settings_tab.png" width="400" />
+
+## Some Features
 
 - [LangChain `ChatOpenAI`](https://python.langchain.com/en/latest/modules/models/chat/integrations/openai.html)
 - Streaming
@@ -23,7 +18,7 @@ A perfect starting template for your amazing new shiny GPT application that come
 - UI with [Gradio](https://gradio.app/)
 - types and comments
 
-## 💻 Installation
+## Installation
 
 Create a `.env` file with your OpenAI API Key
 
@@ -37,28 +32,22 @@ You `.env` should look like
 OPENAI_API_KEY=<YOUR_KEY>
 ```
 
-### Virtual Enviroment
+### Getting started
 
-You can use python virtual env
-
+Virtual enviroment
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 ``` 
 
-Then
-
+Running the application with gradio
 ```bash
 cd chatgptApp
 gradio main.py
 ```
 
-Using `gradio` is great because it gives you hot reloading
-
 ### Docker 
-
-Easy peasy
 
 ```bash
 docker build -t gradio-app .
@@ -68,14 +57,13 @@ docker run --rm -it -p 7860:7860 \
     gradio-app
 ```
 
-Then, navigate to `http://0.0.0.0:7860/`
-
-You can also change the python version used (defaults to `3.11`) by
-
 ```bash
-docker build --build-arg PYTHON_VERSION=3.9 -t gradio-app .
+docker build --build-arg -t gradio-app .
 ```
 
-## 🏆 contribution
-
-Want to contribute? Thanks a lot! Please Fork it and PR it 🙏
+Deploy headless
+```makefile
+deploy_headless:
+	docker build --tag=${app_name} --build-arg OPENAI_API_KEY=${OPENAI_API_KEY} .
+	docker run -dit -p ${port}:${port} ${app_name}
+```

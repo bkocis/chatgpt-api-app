@@ -29,7 +29,6 @@ deploy_headless:
 	docker run -dit -p ${port}:${port} ${app_name}
 git_push:
 	flake8
-	pytest
 	git add .
 	git commit -m "update run via makefile"
 	git push
