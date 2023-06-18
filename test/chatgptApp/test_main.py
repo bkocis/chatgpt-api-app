@@ -1,5 +1,5 @@
 import unittest
-from main import on_clear_click
+from chatgptApp.main import on_clear_click
 
 
 class TestOnClearClick(unittest.TestCase):

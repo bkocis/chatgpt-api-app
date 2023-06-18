@@ -50,7 +50,7 @@ pip install -r requirements.txt
 Then
 
 ```bash
-cd gradio-chatgpt-app
+cd chatgptApp
 gradio main.py
 ```
 
