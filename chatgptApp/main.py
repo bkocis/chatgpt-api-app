@@ -110,13 +110,15 @@ spacef_large_summer_lake_panorama_mountains_5bdcade0-1a3f-43ac-b678-8634912c99ab
 </center>
 <br>
 """
-help_page_header = """
-Improve your prompt considering:
-<br>
-1. Give the model excessive information in addition to your prompt
-<br>
-2. 
-"""
+# help_page_header = """
+# Improve your prompt considering:
+# <br>
+# 1. Give the model excessive information in addition to your prompt
+# <br>
+# 2.
+# """
+with open("prompts/prompt_instructions_helper.md") as f:
+    help_page_header = f.read()
 
 with gr.Blocks(
         title="ChatGPTapp",
