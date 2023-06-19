@@ -19,4 +19,5 @@ RUN apt-get update && \
 WORKDIR /opt/chatgptApp
 EXPOSE 8083
 
-CMD ["gradio", "main.py"]
+# CMD ["gradio", "main.py"]
+CMD ["python", "main.py"]

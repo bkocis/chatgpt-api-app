@@ -4,26 +4,21 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 from queue import Empty, Queue
 from threading import Thread
+
 # from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import HumanMessagePromptTemplate
 from langchain.schema import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from callback import QueueCallback
+
 from dotenv import load_dotenv
 load_dotenv()
-
-MODELS_NAMES = ["gpt-3.5-turbo"]
-DEFAULT_TEMPERATURE = 0.7
-
-ChatHistory = List[str]
 
 logging.basicConfig(
     format="[%(asctime)s %(levelname)s]: %(message)s", level=logging.INFO
 )
-# load up our system prompt
-system_message = SystemMessage(content=Path("prompts/system.prompt").read_text())
-# for the human, we will just inject the text
-human_message_prompt_template = HumanMessagePromptTemplate.from_template("{text}")
+
+ChatHistory = List[str]
 
 
 def message_handler(
@@ -97,92 +92,93 @@ def on_apply_settings_click(model_name: str, temperature: float):
     return chat, *on_clear_click()
 
 
-# some css why not, "borrowed" from https://huggingface.co/spaces/ysharma/Gradio-demo-streaming/blob/main/app.py
-css_string = """
-#col_container {width: 1200px; margin-left: auto; margin-right: auto;}
-#chatbot {height: 600px; overflow: auto;}
-footer {visibility: hidden}
-"""
-page_subtitle = """
-<center>
-<img src="https://dallery.gallery/wp-content/uploads/2022/08/
-spacef_large_summer_lake_panorama_mountains_5bdcade0-1a3f-43ac-b678-8634912c99ab.png.webp" alt="header" width="900">
-</center>
-<br>
-"""
-# help_page_header = """
-# Improve your prompt considering:
-# <br>
-# 1. Give the model excessive information in addition to your prompt
-# <br>
-# 2.
-# """
-with open("prompts/prompt_instructions_helper.md") as f:
-    help_page_header = f.read()
+def load_style():
+    with open("prompts/prompt_instructions_helper.md") as f:
+        help_page_header = f.read()
 
-with gr.Blocks(
-        title="ChatGPTapp",
-        theme=gr.themes.Soft(text_size="sm"),
-        css=css_string,
-        ) \
-        as demo:
-    # here we keep our state so multiple user can use the app at the same time!
-    messages = gr.State([system_message])
-    # same thing for the chat, we want one chat per use so callbacks are unique I guess
-    chat = gr.State(None)
+    with open("style/css_string.txt") as f:
+        css_string = f.read()
 
-    with gr.Column(elem_id="col_container"):
-        gr.Markdown(page_subtitle, elem_id="centerImage")
-        with gr.Tab("ChatGPT"):
-            chatbot = gr.Chatbot(show_label=False)
-            with gr.Row():
-                message = gr.Textbox(show_label=False, placeholder="write input here")
-                message.submit(
-                    message_handler,
-                    [chat, message, chatbot, messages],
-                    [chat, message, chatbot, messages],
-                    queue=True,
-                )
-                # submit = gr.Button("Submit", variant="primary")
-                # submit.click(
-                #     message_handler,
-                #     [chat, message, chatbot, messages],
-                #     [chat, message, chatbot, messages],
-                # )
-        with gr.Tab("Cheatsheet"):
-            gr.Markdown(help_page_header)
-        with gr.Tab("Settings"):
-            with gr.Column():
-                model_name = gr.Dropdown(
-                    choices=MODELS_NAMES, value=MODELS_NAMES[0], label="model"
-                )
-                temperature = gr.Slider(
-                    minimum=0.0,
-                    maximum=1.0,
-                    value=0.7,
-                    step=0.1,
-                    label="temperature",
-                    interactive=True,
-                )
-                apply_settings = gr.Button("Apply")
-                apply_settings.click(
-                    on_apply_settings_click,
-                    [model_name, temperature],
-                    [chat, message, chatbot, messages],
-                )
-                clear = gr.Button("Reset chat")
-                clear.click(
-                    on_clear_click,
-                    [],
-                    [message, chatbot, messages],
-                    queue=False,
-                )
+    with open("style/page_header.txt") as f:
+        page_subtitle = f.read()
+        return help_page_header, css_string, page_subtitle
 
 
-demo.queue()
-demo.launch(
-    # debug=False,
-    # share=True,
-    server_name="0.0.0.0",
-    server_port=8083,
-    root_path="/openai-chatgpt-gradio-app")
+def main(system_message, human_message_prompt_template):
+    help_page_header, css_string, page_subtitle = load_style()
+    with gr.Blocks(
+            title="ChatGPTapp",
+            theme=gr.themes.Soft(text_size="sm"),
+            css=css_string,
+            ) \
+            as demo:
+        # here we keep our state so multiple user can use the app at the same time!
+        messages = gr.State([system_message])
+        # same thing for the chat, we want one chat per use so callbacks are unique I guess
+        chat = gr.State(None)
+
+        with gr.Column(elem_id="col_container"):
+            gr.Markdown(page_subtitle, elem_id="centerImage")
+            with gr.Tab("ChatGPT"):
+                chatbot = gr.Chatbot(show_label=False)
+                with gr.Row():
+                    message = gr.Textbox(show_label=False, placeholder="write input here")
+                    message.submit(
+                        message_handler,
+                        [chat, message, chatbot, messages],
+                        [chat, message, chatbot, messages],
+                        queue=True,
+                    )
+            with gr.Tab("Cheatsheet"):
+                gr.Markdown(help_page_header)
+            with gr.Tab("Settings"):
+                with gr.Column():
+                    model_name = gr.Dropdown(
+                        choices=MODELS_NAMES, value=MODELS_NAMES[0], label="model"
+                    )
+                    temperature = gr.Slider(
+                        minimum=0.0,
+                        maximum=1.0,
+                        value=DEFAULT_TEMPERATURE,
+                        step=0.1,
+                        label="temperature",
+                        interactive=True,
+                    )
+                    apply_settings = gr.Button("Apply")
+                    apply_settings.click(
+                        on_apply_settings_click,
+                        [model_name, temperature],
+                        [chat, message, chatbot, messages],
+                    )
+                    clear = gr.Button("Reset chat")
+                    clear.click(
+                        on_clear_click,
+                        [],
+                        [message, chatbot, messages],
+                        queue=False,
+                    )
+    demo.queue()
+    demo.launch(
+        # debug=False,
+        # share=True,
+        server_name="0.0.0.0",
+        server_port=8083,
+        root_path="/openai-chatgpt-gradio-app")
+
+
+if __name__ == "__main__":
+    MODELS_NAMES = ["gpt-3.5-turbo"]
+    DEFAULT_TEMPERATURE = 0.6
+    # chat_models = ChatOpenAI()
+    # human_message_prompt = HumanMessagePromptTemplate()
+    # ai_message = AIMessage()
+    # base_message = BaseMessage()
+    # humane_message = HumanMessage()
+    # system_message = SystemMessage()
+    # que_callback = QueueCallback()
+
+    # load up our system prompt
+    system_message = SystemMessage(content=Path("prompts/system.prompt").read_text())
+    # for the human, we will just inject the text
+    human_message_prompt_template = HumanMessagePromptTemplate.from_template("{text}")
+    main(system_message, human_message_prompt_template)
