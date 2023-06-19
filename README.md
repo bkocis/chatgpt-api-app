@@ -67,3 +67,30 @@ deploy_headless:
 	docker build --tag=${app_name} --build-arg OPENAI_API_KEY=${OPENAI_API_KEY} .
 	docker run -dit -p ${port}:${port} ${app_name}
 ```
+
+### Nginx 
+
+```nginx
+    location /openai-chatgpt-gradio-app/ {
+        proxy_pass http://127.0.0.1:8083/;
+        proxy_redirect off;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+    }
+
+```
+
+Important setting to add to main.py:
+
+```python
+demo.launch(
+    # debug=False,
+    # share=True,
+    server_name="0.0.0.0",
+    server_port=8083,
+    root_path="/openai-chatgpt-gradio-app")
+
+```
+

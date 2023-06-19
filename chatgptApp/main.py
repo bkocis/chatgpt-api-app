@@ -179,5 +179,8 @@ with gr.Blocks(
 
 demo.queue()
 demo.launch(
-    debug=False,
-    server_name="0.0.0.0")
+    # debug=False,
+    # share=True,
+    server_name="0.0.0.0",
+    server_port=8083,
+    root_path="/openai-chatgpt-gradio-app")
