@@ -94,3 +94,15 @@ demo.launch(
 
 ```
 
+
+Read more about deploying gradio apps to servers: 
+
+https://gradio.app/running-gradio-on-your-web-server-with-nginx/
+
+some issues encountered, with solution:
+
+https://discuss.huggingface.co/t/deploy-gradio-app-on-my-own-server-machine-fails/41808
+
+https://github.com/gradio-app/gradio/issues/1747
+
+
