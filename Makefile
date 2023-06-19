@@ -8,8 +8,8 @@ build_test:
 	else \
 		echo "Linting failed"; \
 	fi
-
-	pytest
+	cd chatgptApp && \
+	python -m pytest ../tests
 	@if [ $$? -eq 0 ]; then \
 		echo "Tests passed"; \
 	else \
@@ -23,7 +23,7 @@ build_run:
 run_local:
 	docker run -p ${port}:${port} ${app_name}
 run_app:
-	gradio app.py
+	python main.py
 deploy_headless:
 	docker build --tag=${app_name} --build-arg OPENAI_API_KEY=${OPENAI_API_KEY} .
 	docker run -dit -p ${port}:${port} ${app_name}
