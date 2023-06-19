@@ -169,13 +169,6 @@ def main(system_message, human_message_prompt_template):
 if __name__ == "__main__":
     MODELS_NAMES = ["gpt-3.5-turbo"]
     DEFAULT_TEMPERATURE = 0.6
-    # chat_models = ChatOpenAI()
-    # human_message_prompt = HumanMessagePromptTemplate()
-    # ai_message = AIMessage()
-    # base_message = BaseMessage()
-    # humane_message = HumanMessage()
-    # system_message = SystemMessage()
-    # que_callback = QueueCallback()
 
     # load up our system prompt
     system_message = SystemMessage(content=Path("prompts/system.prompt").read_text())
