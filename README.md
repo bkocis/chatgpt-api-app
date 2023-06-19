@@ -1,5 +1,7 @@
 ### Gradio app streaming prompt completion with OpenAI API
 
+[![Python application](https://github.com/bkocis/gradio-apps/actions/workflows/python-app.yml/badge.svg)](https://github.com/bkocis/gradio-apps/actions/workflows/python-app.yml)
+
 ----
 
 ## About
