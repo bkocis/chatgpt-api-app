@@ -1,7 +1,8 @@
 ### Gradio app streaming prompt completion with OpenAI API
 
 [![Python application](https://github.com/bkocis/gradio-apps/actions/workflows/python-app.yml/badge.svg?branch=main)](https://github.com/bkocis/gradio-apps/actions/workflows/python-app.yml)
-----
+
+---
 
 ## About
 
@@ -31,6 +32,10 @@ On local machine, you can put your api key in your `.bashrc` or `.zshrc` file, o
 export OPENAI_API_KEY=<YOUR_API_KEY>
 ```
 
+When building the docker image, the api key is passed as a build argument. Make sure to have it to the instance where you build the image. 
+
+
+
 ### Getting started
 
 Virtual enviroment
@@ -40,10 +45,10 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ``` 
 
-Running the application with gradio
+Running the application on local machine
 ```bash
 cd chatgptApp
-gradio main.py
+python main.py
 ```
 
 ### Docker 
@@ -51,18 +56,11 @@ gradio main.py
 Build and run docker container using commands from the Makefile
 
 ```bash
-docker build -t gradio-app .
-docker run --rm -it -p 7860:7860 \
-    -e GRADIO_SERVER_NAME=0.0.0.0 \
-    -v $(pwd)/.env:/app/.env \
-    gradio-app
+docker build --tag=${app_name} --build-arg OPENAI_API_KEY=${OPENAI_API_KEY} .
+docker run -p ${port}:${port} ${app_name}
 ```
 
-```bash
-docker build --build-arg -t gradio-app .
-```
-
-Deploy headless
+Deploy headless (target from Makefile)
 ```makefile
 deploy_headless:
 	docker build --tag=${app_name} --build-arg OPENAI_API_KEY=${OPENAI_API_KEY} .
@@ -73,9 +71,11 @@ Check the container with `docker logs`
 
 ### Nginx 
 
+In case of deploying the app to your own server, you can use nginx for reverse proxy. Use the following endpoint block as a suggestion for the nginx config file:
+
 ```nginx
-    location /openai-chatgpt-gradio-app/ {
-        proxy_pass http://127.0.0.1:8083/;
+    location /chatgpt-app {
+        proxy_pass http://0.0.0.0:8083;
         proxy_redirect off;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -85,20 +85,20 @@ Check the container with `docker logs`
 
 ```
 
-Important setting to add to main.py:
+Important to add the server_name, port, and root_path to the `demo.launch` method in `main.py`:
 
 ```python
 demo.launch(
-    # debug=False,
-    # share=True,
     server_name="0.0.0.0",
     server_port=8083,
     root_path="/openai-chatgpt-gradio-app")
 
 ```
 
+---
 
-Read more about deploying [gradio apps to servers](https://gradio.app/running-gradio-on-your-web-server-with-nginx/)
+Read more about deploying:
+- [gradio apps to servers](https://gradio.app/running-gradio-on-your-web-server-with-nginx/)
 
 Some issues encountered, with solution:
 
@@ -107,5 +107,3 @@ Some issues encountered, with solution:
 - [issue1747](https://github.com/gradio-app/gradio/issues/1747)
 
 [Reference repo](https://github.com/FrancescoSaverioZuppichini/gradioGPT) 🙏
-
-
