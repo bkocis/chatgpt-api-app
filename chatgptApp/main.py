@@ -1,4 +1,5 @@
 import logging
+import sqlite3
 import gradio as gr
 from pathlib import Path
 from typing import List, Optional, Tuple
@@ -70,6 +71,8 @@ def message_handler(
     messages.append(AIMessage(content=content))
     logging.debug(f"reply = {content}")
     logging.info("Done!")
+    c.execute("INSERT INTO chat_sessions (question, answer) VALUES (?, ?)", (message, content))
+    conn.commit()
     return chat, "", chatbot_messages, messages
 
 
@@ -167,6 +170,15 @@ def main(system_message, human_message_prompt_template):
 
 
 if __name__ == "__main__":
+    conn = sqlite3.connect('chat_sessions.db')
+    c = conn.cursor()
+    # create a table to store the chat sessions
+    c.execute('''CREATE TABLE IF NOT EXISTS chat_sessions
+                 (id INTEGER PRIMARY KEY,
+                  question TEXT,
+                  answer TEXT)''')
+    conn.commit()
+
     MODELS_NAMES = ["gpt-3.5-turbo"]
     DEFAULT_TEMPERATURE = 0.6
 
