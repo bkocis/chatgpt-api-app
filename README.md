@@ -5,6 +5,7 @@
 ---
 
 ## About
+#### Build your own ChatGPT app and functionalities
 
 This is a simple web application that uses [Gradio](https://gradio.app/) to stream chat using OpenAI chatgpt API.
 A docker container can be built and hosted on your own server, so you can have "almost" the same user experience with ChatGPT, as with the official site. 
@@ -15,13 +16,6 @@ Multiple tabs for accessing different models and settings
 
 <img src="docs/images/settings_tab.png" width="400" />
 
-## Some Features
-
-- [LangChain `ChatOpenAI`](https://python.langchain.com/en/latest/modules/models/chat/integrations/openai.html)
-- Streaming
-- [State management](https://gradio.app/state-in-blocks/) so multiple users can use it
-- UI with [Gradio](https://gradio.app/)
-- types and comments
 
 ## Installation
 
