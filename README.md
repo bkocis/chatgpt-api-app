@@ -21,16 +21,14 @@ Multiple tabs for accessing different models and settings
 
 ## Installation
 
-Create a `.env` file with your OpenAI API Key
+### OpenAI API Key
+
+The api key is required to run the application. You can get it from [OpenAI](https://beta.openai.com/)
+
+On local machine, you can put your api key in your `.bashrc` or `.zshrc` file, or add to the list of environment variables in your IDE.
 
 ```bash
-echo "OPENAI_API_KEY=<YOUR_API_KEY>" > .env
-```
-
-You `.env` should look like
-
-```
-OPENAI_API_KEY=<YOUR_KEY>
+export OPENAI_API_KEY=<YOUR_API_KEY>
 ```
 
 ### Getting started
@@ -50,6 +48,8 @@ gradio main.py
 
 ### Docker 
 
+Build and run docker container using commands from the Makefile
+
 ```bash
 docker build -t gradio-app .
 docker run --rm -it -p 7860:7860 \
@@ -68,6 +68,8 @@ deploy_headless:
 	docker build --tag=${app_name} --build-arg OPENAI_API_KEY=${OPENAI_API_KEY} .
 	docker run -dit -p ${port}:${port} ${app_name}
 ```
+
+Check the container with `docker logs`
 
 ### Nginx 
 
