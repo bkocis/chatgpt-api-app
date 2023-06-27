@@ -6,6 +6,9 @@
 
 ## About
 
+This is a simple web application that uses [Gradio](https://gradio.app/) to stream chat using OpenAI chatgpt API.
+A docker container can be built and hosted on your own server, so you can have "almost" the same user experience with ChatGPT, as with the official site. 
+
 <img src="docs/images/chat_tab.png" width="400" />
 
 Multiple tabs for accessing different models and settings
@@ -106,4 +109,4 @@ Some issues encountered, with solution:
 
 - [issue1747](https://github.com/gradio-app/gradio/issues/1747)
 
-[Reference repo](https://github.com/FrancescoSaverioZuppichini/gradioGPT) 🙏
+[Reference repo - kudos to FrancescoSaverioZuppichini](https://github.com/FrancescoSaverioZuppichini/gradioGPT) 👍
