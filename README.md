@@ -98,14 +98,14 @@ demo.launch(
 ```
 
 
-Read more about deploying gradio apps to servers: 
+Read more about deploying [gradio apps to servers](https://gradio.app/running-gradio-on-your-web-server-with-nginx/)
 
-https://gradio.app/running-gradio-on-your-web-server-with-nginx/
+Some issues encountered, with solution:
 
-some issues encountered, with solution:
+- [deploy gradio](https://discuss.huggingface.co/t/deploy-gradio-app-on-my-own-server-machine-fails/41808)
 
-https://discuss.huggingface.co/t/deploy-gradio-app-on-my-own-server-machine-fails/41808
+- [issue1747](https://github.com/gradio-app/gradio/issues/1747)
 
-https://github.com/gradio-app/gradio/issues/1747
+[Reference repo](https://github.com/FrancescoSaverioZuppichini/gradioGPT) 🙏
 
 
