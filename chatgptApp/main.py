@@ -71,8 +71,10 @@ def message_handler(
     messages.append(AIMessage(content=content))
     logging.debug(f"reply = {content}")
     logging.info("Done!")
-    c.execute("INSERT INTO chat_sessions (question, answer) VALUES (?, ?)", (message, content))
+    c.execute("INSERT INTO chat_session_01 (question, answer) VALUES (?, ?)", (message, content))
     conn.commit()
+    c.execute("select * from chat_session_01")
+    logging.info(f"{c.fetchall()}")
     return chat, "", chatbot_messages, messages
 
 
@@ -165,18 +167,15 @@ def main(system_message, human_message_prompt_template):
         # debug=False,
         # share=True,
         server_name="0.0.0.0",
-        server_port=8083,
-        root_path="/openai-chatgpt-gradio-app")
+        server_port=8083)
+        # root_path="/openai-chatgpt-gradio-app")
 
 
 if __name__ == "__main__":
-    conn = sqlite3.connect('chat_sessions.db')
+    conn = sqlite3.connect('chat_sessions.db', check_same_thread=False)
     c = conn.cursor()
     # create a table to store the chat sessions
-    c.execute('''CREATE TABLE IF NOT EXISTS chat_sessions
-                 (id INTEGER PRIMARY KEY,
-                  question TEXT,
-                  answer TEXT)''')
+    c.execute(f"CREATE TABLE IF NOT EXISTS chat_session_01 (id INTEGER PRIMARY KEY, question TEXT, answer TEXT)")
     conn.commit()
 
     MODELS_NAMES = ["gpt-3.5-turbo"]

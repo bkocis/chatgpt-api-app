@@ -1,5 +1,6 @@
 PORT=8083
 APP_NAME=openai-chatgpt-gradio-app
+VOLUME_NAME=chat-sqlite3-volume
 
 build_test:
 	flake8 --config=.flake8
@@ -19,9 +20,18 @@ build_test:
 	docker run -p ${PORT}:${PORT} ${APP_NAME}
 build_run:
 	docker build --tag=${APP_NAME} --build-arg OPENAI_API_KEY=${OPENAI_API_KEY} .
-	docker run -p ${PORT}:${PORT} ${APP_NAME}
+	docker run -v ${VOLUME_NAME}:/opt/app -p ${PORT}:${PORT} ${APP_NAME}
 run_local:
-	docker run -p ${PORT}:${PORT} ${APP_NAME}
+	docker run -v ${VOLUME_NAME}:/opt/app -p ${PORT}:${PORT} ${APP_NAME}
+
+create_volume:
+	docker volume create ${VOLUME_NAME}
+
+check_volume:
+	docker volume ls
+	docker volume inspect ${VOLUME_NAME}
+	docker run -it --rm --volume ${VOLUME_NAME}:/opt/app alpine ls -ltr /opt/app
+
 run_app:
 	python main.py
 deploy_headless:
