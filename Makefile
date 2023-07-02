@@ -1,6 +1,6 @@
 PORT=8083
 APP_NAME=openai-chatgpt-gradio-app
-VOLUME_NAME=chat-sqlite3-volume
+VOLUME_NAME=chat-sqlite3-volume-2
 
 build_test:
 	flake8 --config=.flake8

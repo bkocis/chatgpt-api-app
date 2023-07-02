@@ -78,6 +78,56 @@ def message_handler(
     return chat, "", chatbot_messages, messages
 
 
+def list_db_tab():
+    """Returns data from an SQL query as a list of dicts."""
+    path_to_db = DB_NAME
+    select_query = "SELECT * FROM chat_session_01"
+    try:
+        con = sqlite3.connect(path_to_db)
+        con.row_factory = sqlite3.Row
+        query = con.execute(select_query).fetchall()
+        unpacked = [{k: item[k] for k in item.keys()} for item in query]
+        return unpacked
+    except Exception as e:
+        # print(f"Failed to execute. Query: {select_query}\n with error:\n{e}")
+        return []
+    finally:
+        con.close()
+
+
+def answer_to_question(question: str):
+    # print(table, question_id)
+    # answer = table[int(question_id)]
+    table = list_db_tab()
+
+    for i in table:
+        if i["question"] == question:
+            answer = i["answer"]
+    logging.info(
+        f"Applying settings: qustion id ={question}, answer={answer}"
+    )
+
+    return answer
+
+
+def format_dict_to_markdown(dictionary):
+    # Create the Markdown table header
+    header = "| Key | Value |\n| --- | --- |\n"
+    # Create the table rows
+    rows = [f"| {key} | {value} |" for key, value in dictionary.items()]
+    # Join the rows with newline characters
+    table = "\n".join(rows)
+    # Combine the header and table rows
+    markdown = header + table
+    return markdown
+
+
+def db_to_markdown():
+    db_list_of_dict = list_db_tab()
+    markdown = [format_dict_to_markdown(db_dict) for db_dict in db_list_of_dict]
+    return str(markdown)
+
+
 def on_clear_click() -> Tuple[str, List, List]:
     return "", [], []
 
@@ -92,7 +142,7 @@ def on_apply_settings_click(model_name: str, temperature: float):
         streaming=True,
         callbacks=[QueueCallback(Queue())],
     )
-    # don't forget to nuke our queue
+    # clear queue - reset the conversation
     chat.callbacks[0].queue.empty()
     return chat, *on_clear_click()
 
@@ -121,6 +171,7 @@ def main(system_message, human_message_prompt_template):
         messages = gr.State([system_message])
         # same thing for the chat, we want one chat per use so callbacks are unique I guess
         chat = gr.State(None)
+        answer = gr.State(None)
 
         with gr.Column(elem_id="col_container"):
             gr.Markdown(page_subtitle, elem_id="centerImage")
@@ -134,6 +185,24 @@ def main(system_message, human_message_prompt_template):
                         [chat, message, chatbot, messages],
                         queue=True,
                     )
+            with gr.Tab("History"):
+                gr.Markdown("This is your chat history:")
+                with gr.Column():
+                    table = list_db_tab()
+                    questions = [entry.get("question") for entry in table]
+                    question = gr.Dropdown(choices=questions, label="question")
+                    apply_selection = gr.Textbox(show_label=False, placeholder="answer")
+                    apply_settings = gr.Button("Apply")
+                    apply_settings.click(
+                        answer_to_question, inputs=[question], outputs=apply_selection
+                    )
+
+                    # apply_settings = gr.Button("Show answer")
+                    # apply_settings.click(
+                    #     answer_to_question,
+                    #     [table, question],
+                    #     [table, answer],
+                    # )
             with gr.Tab("Cheatsheet"):
                 gr.Markdown(help_page_header)
             with gr.Tab("Settings"):
@@ -172,7 +241,9 @@ def main(system_message, human_message_prompt_template):
 
 
 if __name__ == "__main__":
-    conn = sqlite3.connect('chat_sessions.db', check_same_thread=False)
+    DB_NAME = "chat_sessions.db"
+
+    conn = sqlite3.connect(DB_NAME, check_same_thread=False)
     c = conn.cursor()
     # create a table to store the chat sessions
     c.execute(f"CREATE TABLE IF NOT EXISTS chat_session_01 (id INTEGER PRIMARY KEY, question TEXT, answer TEXT)")
