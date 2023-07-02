@@ -36,7 +36,7 @@ run_app:
 	python main.py
 deploy_headless:
 	docker build --tag=${APP_NAME} --build-arg OPENAI_API_KEY=${OPENAI_API_KEY} .
-	docker run -dit -p ${PORT}:${PORT} ${APP_NAME}
+	docker run -dit -v ${VOLUME_NAME}:/opt/app -p ${PORT}:${PORT} ${APP_NAME}
 git_push:
 	flake8
 	git add .
