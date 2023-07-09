@@ -82,32 +82,28 @@ def list_db_tab():
     """Returns data from an SQL query as a list of dicts."""
     path_to_db = DB_NAME
     select_query = "SELECT * FROM chat_session_01"
-    try:
-        con = sqlite3.connect(path_to_db)
-        con.row_factory = sqlite3.Row
-        query = con.execute(select_query).fetchall()
-        unpacked = [{k: item[k] for k in item.keys()} for item in query]
-        return unpacked
-    except Exception as e:
-        # print(f"Failed to execute. Query: {select_query}\n with error:\n{e}")
-        return []
-    finally:
-        con.close()
+    con = sqlite3.connect(path_to_db)
+    con.row_factory = sqlite3.Row
+    query = con.execute(select_query).fetchall()
+    unpacked = [{k: item[k] for k in item.keys()} for item in query]
+
+    return unpacked
 
 
 def answer_to_question(question: str):
     # print(table, question_id)
     # answer = table[int(question_id)]
     table = list_db_tab()
-
+    # questions = [entry.get("question") for entry in table]
+    # print(questions)
+    # gr.update(choices=questions)
     for i in table:
         if i["question"] == question:
             answer = i["answer"]
     logging.info(
         f"Applying settings: qustion id ={question}, answer={answer}"
     )
-
-    return answer
+    return answer  # , gr.update(choices=questions)
 
 
 def format_dict_to_markdown(dictionary):
@@ -171,7 +167,6 @@ def main(system_message, human_message_prompt_template):
         messages = gr.State([system_message])
         # same thing for the chat, we want one chat per use so callbacks are unique I guess
         chat = gr.State(None)
-        answer = gr.State(None)
 
         with gr.Column(elem_id="col_container"):
             gr.Markdown(page_subtitle, elem_id="centerImage")
@@ -236,8 +231,9 @@ def main(system_message, human_message_prompt_template):
         # debug=False,
         # share=True,
         server_name="0.0.0.0",
-        server_port=8083)
+        server_port=8083,
         # root_path="/openai-chatgpt-gradio-app")
+    )
 
 
 if __name__ == "__main__":
@@ -246,10 +242,10 @@ if __name__ == "__main__":
     conn = sqlite3.connect(DB_NAME, check_same_thread=False)
     c = conn.cursor()
     # create a table to store the chat sessions
-    c.execute(f"CREATE TABLE IF NOT EXISTS chat_session_01 (id INTEGER PRIMARY KEY, question TEXT, answer TEXT)")
+    c.execute("CREATE TABLE IF NOT EXISTS chat_session_01 (id INTEGER PRIMARY KEY, question TEXT, answer TEXT)")
     conn.commit()
 
-    MODELS_NAMES = ["gpt-3.5-turbo"]
+    MODELS_NAMES = ["gpt-3.5-turbo", "gpt-4"]
     DEFAULT_TEMPERATURE = 0.6
 
     # load up our system prompt
