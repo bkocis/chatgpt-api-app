@@ -33,7 +33,7 @@ def message_handler(
         queue = Queue()
         # let's create our default chat
         chat = ChatOpenAI(
-            model_name=MODELS_NAMES[0],
+            model_name=MODELS_NAMES[1],
             temperature=DEFAULT_TEMPERATURE,
             streaming=True,
             callbacks=([QueueCallback(queue)]),
@@ -203,7 +203,7 @@ def main(system_message, human_message_prompt_template):
             with gr.Tab("Settings"):
                 with gr.Column():
                     model_name = gr.Dropdown(
-                        choices=MODELS_NAMES, value=MODELS_NAMES[0], label="model"
+                        choices=MODELS_NAMES, value=MODELS_NAMES[1], label="model"
                     )
                     temperature = gr.Slider(
                         minimum=0.0,
