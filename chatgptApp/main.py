@@ -246,7 +246,7 @@ if __name__ == "__main__":
     conn.commit()
 
     MODELS_NAMES = ["gpt-3.5-turbo", "gpt-4"]
-    DEFAULT_TEMPERATURE = 0.6
+    DEFAULT_TEMPERATURE = 0.1
 
     # load up our system prompt
     system_message = SystemMessage(content=Path("prompts/system.prompt").read_text())
