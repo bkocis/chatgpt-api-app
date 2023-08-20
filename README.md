@@ -66,6 +66,14 @@ deploy_headless:
 
 Check the container with `docker logs`
 
+Volumes and storage on host
+When a docker volume is used, the data can be exported, or copied from the container:
+```commandline
+docker exec -it tender_bose /bin/bash
+docker cp tender_bose:/opt/app/chat_sessions.db ./resources/
+
+```
+
 ### Nginx 
 
 In case of deploying the app to your own server, you can use nginx for reverse proxy. Use the following endpoint block as a suggestion for the nginx config file:

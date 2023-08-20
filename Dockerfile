@@ -5,7 +5,8 @@ ENV OPENAI_API_KEY $OPENAI_API_KEY
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONPATH /opt/chatgptApp
 
-RUN mkdir /opt/app
+RUN mkdir /opt/app && \
+    mkdir /opt/resources
 
 COPY chatgptApp /opt/app
 COPY ./requirements.txt /opt/app/requirements.txt

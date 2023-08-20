@@ -164,6 +164,6 @@ cython_debug/
 #.idea/
 /chatgptApp/static/
 /resources/simple-gradio-app
-/chatgptApp/chat_sessions.db
+/resources/chat_sessions.db
 /chat_sessions.db
 /resources/**

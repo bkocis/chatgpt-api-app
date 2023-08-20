@@ -1,3 +1,4 @@
+import os
 import logging
 import sqlite3
 import gradio as gr
@@ -80,7 +81,6 @@ def message_handler(
 
 def list_db_tab():
     """Returns data from an SQL query as a list of dicts."""
-    path_to_db = DB_NAME
     select_query = "SELECT * FROM chat_session_01"
     con = sqlite3.connect(path_to_db)
     con.row_factory = sqlite3.Row
@@ -238,8 +238,9 @@ def main(system_message, human_message_prompt_template):
 
 if __name__ == "__main__":
     DB_NAME = "chat_sessions.db"
+    path_to_db = os.path.join(os.environ["PATH_TO_DB"], DB_NAME)
 
-    conn = sqlite3.connect(DB_NAME, check_same_thread=False)
+    conn = sqlite3.connect(path_to_db, check_same_thread=False)
     c = conn.cursor()
     # create a table to store the chat sessions
     c.execute("CREATE TABLE IF NOT EXISTS chat_session_01 (id INTEGER PRIMARY KEY, question TEXT, answer TEXT)")
