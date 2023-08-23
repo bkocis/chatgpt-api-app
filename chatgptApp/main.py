@@ -86,8 +86,24 @@ def list_db_tab():
     con.row_factory = sqlite3.Row
     query = con.execute(select_query).fetchall()
     unpacked = [{k: item[k] for k in item.keys()} for item in query]
-
     return unpacked
+
+
+def list_db_tab_questions(select_query):
+    """Returns data from an SQL query as a list of dicts."""
+    # select_query = "SELECT question FROM chat_session_01"
+    con = sqlite3.connect(path_to_db)
+    con.row_factory = sqlite3.Row
+    query = con.execute(select_query).fetchall()
+    unpacked = [{k: item[k] for k in item.keys()} for item in query]
+    question_list = []
+    answer_list = []
+    # formatted_output = [f"Question: {item['question']}\nAnswer: {item['answer']}\n" for item in unpacked]
+    for item in unpacked:
+        question_list.append(item['question'])
+        answer_list.append(item.get('answer', ''))
+    # return [[str(question_list[0]), str(answer_list[0])]]
+    return [[str("\n".join(question_list)), str("\n".join(answer_list))]]
 
 
 def answer_to_question(question: str):
@@ -191,13 +207,29 @@ def main(system_message, human_message_prompt_template):
                     apply_settings.click(
                         answer_to_question, inputs=[question], outputs=apply_selection
                     )
-
                     # apply_settings = gr.Button("Show answer")
                     # apply_settings.click(
                     #     answer_to_question,
                     #     [table, question],
                     #     [table, answer],
                     # )
+
+            with gr.Tab("Query_History"):
+                query_chatbot = gr.Chatbot(show_label=False)
+                query = gr.Textbox(show_label=False,
+                                   value="select * from chat_session_01 order by id desc limit 1 offset 0",
+                                   show_copy_button=True)
+                # query_result_textbox = gr.Textbox(show_label=False,
+                #                                   placeholder="answer",
+                #                                   show_copy_button=True,
+                #                                   interactive=True)
+                query.submit(
+                    list_db_tab_questions,
+                    [query],
+                    # query_result_textbox,
+                    query_chatbot
+                )
+
             with gr.Tab("Cheatsheet"):
                 gr.Markdown(help_page_header)
             with gr.Tab("Settings"):
