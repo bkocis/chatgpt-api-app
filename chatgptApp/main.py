@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 from queue import Empty, Queue
 from threading import Thread
-
 # from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import HumanMessagePromptTemplate
@@ -30,9 +29,7 @@ def message_handler(
     messages: List[BaseMessage]
 ) -> Tuple[ChatOpenAI, str, ChatHistory, List[BaseMessage]]:
     if chat is None:
-        # in the queue we will store our streamed tokens
         queue = Queue()
-        # let's create our default chat
         chat = ChatOpenAI(
             model_name=MODELS_NAMES[1],
             temperature=DEFAULT_TEMPERATURE,
@@ -40,7 +37,6 @@ def message_handler(
             callbacks=([QueueCallback(queue)]),
         )
     else:
-        # hacky way to get the queue back
         queue = chat.callbacks[0].queue
 
     job_done = object()
@@ -48,7 +44,6 @@ def message_handler(
     logging.info("asking question to GPT")
     messages.append(HumanMessage(content=message))
     chatbot_messages.append((message, ""))
-    # this is a little wrapper we need cuz we have to add the job_done
 
     def task():
         chat(messages)
@@ -56,9 +51,7 @@ def message_handler(
 
     t = Thread(target=task)
     t.start()
-    # this will hold the content as we generate
     content = ""
-    # now, we read the next_token from queue and do what it has to be done
     while True:
         try:
             next_token = queue.get(True, timeout=1)
@@ -91,7 +84,6 @@ def list_db_tab():
 
 def list_db_tab_questions(select_query):
     """Returns data from an SQL query as a list of dicts."""
-    # select_query = "SELECT question FROM chat_session_01"
     con = sqlite3.connect(path_to_db)
     con.row_factory = sqlite3.Row
     query = con.execute(select_query).fetchall()
@@ -104,22 +96,6 @@ def list_db_tab_questions(select_query):
         answer_list.append(item.get('answer', ''))
     # return [[str(question_list[0]), str(answer_list[0])]]
     return [[str("\n".join(question_list)), str("\n".join(answer_list))]]
-
-
-def answer_to_question(question: str):
-    # print(table, question_id)
-    # answer = table[int(question_id)]
-    table = list_db_tab()
-    # questions = [entry.get("question") for entry in table]
-    # print(questions)
-    # gr.update(choices=questions)
-    for i in table:
-        if i["question"] == question:
-            answer = i["answer"]
-    logging.info(
-        f"Applying settings: qustion id ={question}, answer={answer}"
-    )
-    return answer  # , gr.update(choices=questions)
 
 
 def format_dict_to_markdown(dictionary):
@@ -181,7 +157,6 @@ def main(system_message, human_message_prompt_template):
             as demo:
         # here we keep our state so multiple user can use the app at the same time!
         messages = gr.State([system_message])
-        # same thing for the chat, we want one chat per use so callbacks are unique I guess
         chat = gr.State(None)
 
         with gr.Column(elem_id="col_container"):
@@ -196,37 +171,15 @@ def main(system_message, human_message_prompt_template):
                         [chat, message, chatbot, messages],
                         queue=True,
                     )
-            with gr.Tab("History"):
-                gr.Markdown("This is your chat history:")
-                with gr.Column():
-                    table = list_db_tab()
-                    questions = [entry.get("question") for entry in table]
-                    question = gr.Dropdown(choices=questions, label="question")
-                    apply_selection = gr.Textbox(show_label=False, placeholder="answer")
-                    apply_settings = gr.Button("Apply")
-                    apply_settings.click(
-                        answer_to_question, inputs=[question], outputs=apply_selection
-                    )
-                    # apply_settings = gr.Button("Show answer")
-                    # apply_settings.click(
-                    #     answer_to_question,
-                    #     [table, question],
-                    #     [table, answer],
-                    # )
 
             with gr.Tab("Query_History"):
                 query_chatbot = gr.Chatbot(show_label=False)
                 query = gr.Textbox(show_label=False,
                                    value="select * from chat_session_01 order by id desc limit 1 offset 0",
                                    show_copy_button=True)
-                # query_result_textbox = gr.Textbox(show_label=False,
-                #                                   placeholder="answer",
-                #                                   show_copy_button=True,
-                #                                   interactive=True)
                 query.submit(
                     list_db_tab_questions,
                     [query],
-                    # query_result_textbox,
                     query_chatbot
                 )
 
@@ -269,20 +222,17 @@ def main(system_message, human_message_prompt_template):
 
 
 if __name__ == "__main__":
+    MODELS_NAMES = ["gpt-3.5-turbo", "gpt-4"]
+    DEFAULT_TEMPERATURE = 0.1
     DB_NAME = "chat_sessions.db"
     path_to_db = os.path.join(os.environ["PATH_TO_DB"], DB_NAME)
 
     conn = sqlite3.connect(path_to_db, check_same_thread=False)
     c = conn.cursor()
-    # create a table to store the chat sessions
     c.execute("CREATE TABLE IF NOT EXISTS chat_session_01 (id INTEGER PRIMARY KEY, question TEXT, answer TEXT)")
     conn.commit()
 
-    MODELS_NAMES = ["gpt-3.5-turbo", "gpt-4"]
-    DEFAULT_TEMPERATURE = 0.1
-
     # load up our system prompt
     system_message = SystemMessage(content=Path("prompts/system.prompt").read_text())
-    # for the human, we will just inject the text
     human_message_prompt_template = HumanMessagePromptTemplate.from_template("{text}")
     main(system_message, human_message_prompt_template)
