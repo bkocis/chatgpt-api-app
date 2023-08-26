@@ -22,16 +22,23 @@ logging.basicConfig(
 ChatHistory = List[str]
 
 
-def message_handler(
-    chat: Optional[ChatOpenAI],
-    message: str,
-    chatbot_messages: ChatHistory,
-    messages: List[BaseMessage]
+def insert_into_db(message, content):
+    c.execute("INSERT INTO chat_session_01 (question, answer) VALUES (?, ?)", (message, content))
+    conn.commit()
+    c.execute("select * from chat_session_01")
+    logging.info(f"{c.fetchall()}")
+
+
+def message_handler_4(
+        chat: Optional[ChatOpenAI],
+        message: str,
+        chatbot_messages: ChatHistory,
+        messages: List[BaseMessage]
 ) -> Tuple[ChatOpenAI, str, ChatHistory, List[BaseMessage]]:
     if chat is None:
         queue = Queue()
         chat = ChatOpenAI(
-            model_name=MODELS_NAMES[1],
+            model_name='gpt-4',
             temperature=DEFAULT_TEMPERATURE,
             streaming=True,
             callbacks=([QueueCallback(queue)]),
@@ -65,10 +72,54 @@ def message_handler(
     messages.append(AIMessage(content=content))
     logging.debug(f"reply = {content}")
     logging.info("Done!")
-    c.execute("INSERT INTO chat_session_01 (question, answer) VALUES (?, ?)", (message, content))
-    conn.commit()
-    c.execute("select * from chat_session_01")
-    logging.info(f"{c.fetchall()}")
+    insert_into_db(message, content)
+    return chat, "", chatbot_messages, messages
+
+
+def message_handler_3p5(
+        chat: Optional[ChatOpenAI],
+        message: str,
+        chatbot_messages: ChatHistory,
+        messages: List[BaseMessage]
+) -> Tuple[ChatOpenAI, str, ChatHistory, List[BaseMessage]]:
+    if chat is None:
+        queue = Queue()
+        chat = ChatOpenAI(
+            model_name='gpt-3.5-turbo',
+            temperature=DEFAULT_TEMPERATURE,
+            streaming=True,
+            callbacks=([QueueCallback(queue)]),
+        )
+    else:
+        queue = chat.callbacks[0].queue
+
+    job_done = object()
+
+    logging.info("asking question to GPT")
+    messages.append(HumanMessage(content=message))
+    chatbot_messages.append((message, ""))
+
+    def task():
+        chat(messages)
+        queue.put(job_done)
+
+    t = Thread(target=task)
+    t.start()
+    content = ""
+    while True:
+        try:
+            next_token = queue.get(True, timeout=1)
+            if next_token is job_done:
+                break
+            content += next_token
+            chatbot_messages[-1] = (message, content)
+            yield chat, "", chatbot_messages, messages
+        except Empty:
+            continue
+    messages.append(AIMessage(content=content))
+    logging.debug(f"reply = {content}")
+    logging.info("Done!")
+    insert_into_db(message, content)
     return chat, "", chatbot_messages, messages
 
 
@@ -161,12 +212,22 @@ def main(system_message, human_message_prompt_template):
 
         with gr.Column(elem_id="col_container"):
             gr.Markdown(page_subtitle, elem_id="centerImage")
-            with gr.Tab("ChatGPT"):
+            with gr.Tab("ChatGPT4"):
                 chatbot = gr.Chatbot(show_label=False)
                 with gr.Row():
                     message = gr.Textbox(show_label=False, placeholder="write input here")
                     message.submit(
-                        message_handler,
+                        message_handler_4,
+                        [chat, message, chatbot, messages],
+                        [chat, message, chatbot, messages],
+                        queue=True,
+                    )
+            with gr.Tab("ChatGPT3.5"):
+                chatbot = gr.Chatbot(show_label=False)
+                with gr.Row():
+                    message = gr.Textbox(show_label=False, placeholder="write input here")
+                    message.submit(
+                        message_handler_3p5,
                         [chat, message, chatbot, messages],
                         [chat, message, chatbot, messages],
                         queue=True,
@@ -188,7 +249,7 @@ def main(system_message, human_message_prompt_template):
             with gr.Tab("Settings"):
                 with gr.Column():
                     model_name = gr.Dropdown(
-                        choices=MODELS_NAMES, value=MODELS_NAMES[1], label="model"
+                        choices=MODELS, value=MODELS[1], label="model"
                     )
                     temperature = gr.Slider(
                         minimum=0.0,
@@ -222,7 +283,7 @@ def main(system_message, human_message_prompt_template):
 
 
 if __name__ == "__main__":
-    MODELS_NAMES = ["gpt-3.5-turbo", "gpt-4"]
+    MODELS = ["gpt-3.5-turbo", "gpt-4"]
     DEFAULT_TEMPERATURE = 0.1
     DB_NAME = "chat_sessions.db"
     path_to_db = os.path.join(os.environ["PATH_TO_DB"], DB_NAME)
