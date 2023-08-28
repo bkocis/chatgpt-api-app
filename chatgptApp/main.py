@@ -208,6 +208,8 @@ def main(system_message, human_message_prompt_template):
             as demo:
         # here we keep our state so multiple user can use the app at the same time!
         messages = gr.State([system_message])
+        messages_4pyanalyzer = gr.State([SystemMessage(content=Path("prompts/system.prompt.python-analyser").read_text())])
+
         chat = gr.State(None)
 
         with gr.Column(elem_id="col_container"):
@@ -222,6 +224,18 @@ def main(system_message, human_message_prompt_template):
                         [chat, message, chatbot, messages],
                         queue=True,
                     )
+
+            with gr.Tab("ChatGPT4-pyAnalyzer"):
+                chatbot = gr.Chatbot(show_label=False)
+                with gr.Row():
+                    message = gr.Textbox(show_label=False, placeholder="write input here")
+                    message.submit(
+                        message_handler_4,
+                        [chat, message, chatbot, messages_4pyanalyzer],
+                        [chat, message, chatbot, messages_4pyanalyzer],
+                        queue=True,
+                    )
+
             with gr.Tab("ChatGPT3.5"):
                 chatbot = gr.Chatbot(show_label=False)
                 with gr.Row():
@@ -285,7 +299,7 @@ def main(system_message, human_message_prompt_template):
 if __name__ == "__main__":
     MODELS = ["gpt-3.5-turbo", "gpt-4"]
     DEFAULT_TEMPERATURE = 0.1
-    DB_NAME = "chat_sessions.db"
+    DB_NAME = "chat_sessions_rw.db"
     path_to_db = os.path.join(os.environ["PATH_TO_DB"], DB_NAME)
 
     conn = sqlite3.connect(path_to_db, check_same_thread=False)
