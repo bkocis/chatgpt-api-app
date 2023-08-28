@@ -299,7 +299,7 @@ def main(system_message, human_message_prompt_template):
 if __name__ == "__main__":
     MODELS = ["gpt-3.5-turbo", "gpt-4"]
     DEFAULT_TEMPERATURE = 0.1
-    DB_NAME = "chat_sessions_rw.db"
+    DB_NAME = "chat_sessions.db"
     path_to_db = os.path.join(os.environ["PATH_TO_DB"], DB_NAME)
 
     conn = sqlite3.connect(path_to_db, check_same_thread=False)
