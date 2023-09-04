@@ -1,6 +1,9 @@
 openai
 gradio==3.40.1
 langchain
+chromadb
+tiktoken
+unstructured
 python-dotenv
 
 flake8

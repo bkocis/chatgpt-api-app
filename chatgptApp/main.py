@@ -6,14 +6,11 @@ from pathlib import Path
 from typing import List, Optional, Tuple
 from queue import Empty, Queue
 from threading import Thread
-# from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import HumanMessagePromptTemplate
 from langchain.schema import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from callback import QueueCallback
 
-from dotenv import load_dotenv
-load_dotenv()
 
 logging.basicConfig(
     format="[%(asctime)s %(levelname)s]: %(message)s", level=logging.INFO
@@ -149,22 +146,22 @@ def list_db_tab_questions(select_query):
     return [[str("\n".join(question_list)), str("\n".join(answer_list))]]
 
 
-def format_dict_to_markdown(dictionary):
-    # Create the Markdown table header
-    header = "| Key | Value |\n| --- | --- |\n"
-    # Create the table rows
-    rows = [f"| {key} | {value} |" for key, value in dictionary.items()]
-    # Join the rows with newline characters
-    table = "\n".join(rows)
-    # Combine the header and table rows
-    markdown = header + table
-    return markdown
-
-
-def db_to_markdown():
-    db_list_of_dict = list_db_tab()
-    markdown = [format_dict_to_markdown(db_dict) for db_dict in db_list_of_dict]
-    return str(markdown)
+# def format_dict_to_markdown(dictionary):
+#     # Create the Markdown table header
+#     header = "| Key | Value |\n| --- | --- |\n"
+#     # Create the table rows
+#     rows = [f"| {key} | {value} |" for key, value in dictionary.items()]
+#     # Join the rows with newline characters
+#     table = "\n".join(rows)
+#     # Combine the header and table rows
+#     markdown = header + table
+#     return markdown
+#
+#
+# def db_to_markdown():
+#     db_list_of_dict = list_db_tab()
+#     markdown = [format_dict_to_markdown(db_dict) for db_dict in db_list_of_dict]
+#     return str(markdown)
 
 
 def on_clear_click() -> Tuple[str, List, List]:
@@ -190,23 +187,18 @@ def load_style():
     with open("prompts/prompt_instructions_helper.md") as f:
         help_page_header = f.read()
 
-    with open("style/css_string.txt") as f:
-        css_string = f.read()
-
     with open("style/page_header.txt") as f:
         page_subtitle = f.read()
-        return help_page_header, css_string, page_subtitle
+        return help_page_header, page_subtitle
 
 
 def main(system_message, human_message_prompt_template):
-    help_page_header, css_string, page_subtitle = load_style()
+    help_page_header, page_subtitle = load_style()
     with gr.Blocks(
             title="ChatGPTapp",
             theme=gr.themes.Soft(text_size="sm"),
-            css=css_string,
-            ) \
-            as demo:
-        # here we keep our state so multiple user can use the app at the same time!
+            css="style/css_string.css"
+            ) as demo:
         messages = gr.State([system_message])
         messages_4pyanalyzer = gr.State([SystemMessage(content=Path("prompts/system.prompt.python-analyser").read_text())])
 
