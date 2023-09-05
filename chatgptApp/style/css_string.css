@@ -11,10 +11,7 @@ footer {
     }
 
 .gradio-container {
-    # background-image: url("https://cdn.openart.ai/stable_diffusion/925e9984445ce1c5bdd20e1f9f8102d81d907594_2000x2000.webp");
-    # background-image: url("https://dallery.gallery/wp-content/uploads/2022/08/spacef_large_summer_lake_panorama_mountains_5bdcade0-1a3f-43ac-b678-8634912c99ab.png.webp");
-    background-image: url("https://cdn.openart.ai/stable_diffusion/ee044ca092a9412692f31d0e96a1a96cbbea8b4b_2000x2000.webp");
-    # background-image: linear-gradient(red, yellow, green);
+    background-image: url("https://i.ibb.co/Fqp2S9H/img-gradient.png");
     height: 200px; /* You must set a specified height */
     width: 70%; /* You must set a specified width */
     background-position: top; /* Center the image */

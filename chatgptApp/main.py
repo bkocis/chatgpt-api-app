@@ -146,24 +146,6 @@ def list_db_tab_questions(select_query):
     return [[str("\n".join(question_list)), str("\n".join(answer_list))]]
 
 
-# def format_dict_to_markdown(dictionary):
-#     # Create the Markdown table header
-#     header = "| Key | Value |\n| --- | --- |\n"
-#     # Create the table rows
-#     rows = [f"| {key} | {value} |" for key, value in dictionary.items()]
-#     # Join the rows with newline characters
-#     table = "\n".join(rows)
-#     # Combine the header and table rows
-#     markdown = header + table
-#     return markdown
-#
-#
-# def db_to_markdown():
-#     db_list_of_dict = list_db_tab()
-#     markdown = [format_dict_to_markdown(db_dict) for db_dict in db_list_of_dict]
-#     return str(markdown)
-
-
 def on_clear_click() -> Tuple[str, List, List]:
     return "", [], []
 
@@ -192,35 +174,39 @@ def load_style():
         return help_page_header, page_subtitle
 
 
-def main(system_message, human_message_prompt_template):
+def main(human_message_prompt_template):
     help_page_header, page_subtitle = load_style()
     with gr.Blocks(
             title="ChatGPTapp",
             theme=gr.themes.Soft(text_size="sm"),
             css="style/css_string.css"
             ) as demo:
-        messages = gr.State([system_message])
+        messages_gen = gr.State([SystemMessage(content=Path("prompts/system.prompt.general").read_text())])
+        messages_py = gr.State([SystemMessage(content=Path("prompts/system.prompt.python").read_text())])
         messages_4pyanalyzer = gr.State([SystemMessage(content=Path("prompts/system.prompt.python-analyser").read_text())])
-
+        kwargs = {
+            "show_label": False,
+            "height": 750
+        }
         chat = gr.State(None)
 
         with gr.Column(elem_id="col_container"):
             gr.Markdown(page_subtitle, elem_id="centerImage")
-            with gr.Tab("ChatGPT4"):
-                chatbot = gr.Chatbot(show_label=False)
+            with gr.Tab("ChatGPT4-py"):
+                chatbot = gr.Chatbot(**kwargs)
                 with gr.Row():
-                    message = gr.Textbox(show_label=False, placeholder="write input here")
+                    message = gr.Textbox(show_label=False, placeholder="write question here")
                     message.submit(
                         message_handler_4,
-                        [chat, message, chatbot, messages],
-                        [chat, message, chatbot, messages],
+                        [chat, message, chatbot, messages_py],
+                        [chat, message, chatbot, messages_py],
                         queue=True,
                     )
 
             with gr.Tab("ChatGPT4-pyAnalyzer"):
-                chatbot = gr.Chatbot(show_label=False)
+                chatbot = gr.Chatbot(**kwargs)
                 with gr.Row():
-                    message = gr.Textbox(show_label=False, placeholder="write input here")
+                    message = gr.Textbox(show_label=False, placeholder="write question here")
                     message.submit(
                         message_handler_4,
                         [chat, message, chatbot, messages_4pyanalyzer],
@@ -229,18 +215,18 @@ def main(system_message, human_message_prompt_template):
                     )
 
             with gr.Tab("ChatGPT3.5"):
-                chatbot = gr.Chatbot(show_label=False)
+                chatbot = gr.Chatbot(**kwargs)
                 with gr.Row():
-                    message = gr.Textbox(show_label=False, placeholder="write input here")
+                    message = gr.Textbox(show_label=False, placeholder="write question here")
                     message.submit(
                         message_handler_3p5,
-                        [chat, message, chatbot, messages],
-                        [chat, message, chatbot, messages],
+                        [chat, message, chatbot, messages_gen],
+                        [chat, message, chatbot, messages_gen],
                         queue=True,
                     )
 
             with gr.Tab("Query_History"):
-                query_chatbot = gr.Chatbot(show_label=False)
+                query_chatbot = gr.Chatbot(**kwargs)
                 query = gr.Textbox(show_label=False,
                                    value="select * from chat_session_01 order by id desc limit 1 offset 0",
                                    show_copy_button=True)
@@ -269,13 +255,13 @@ def main(system_message, human_message_prompt_template):
                     apply_settings.click(
                         on_apply_settings_click,
                         [model_name, temperature],
-                        [chat, message, chatbot, messages],
+                        [chat, message, chatbot, messages_gen],
                     )
                     clear = gr.Button("Reset chat")
                     clear.click(
                         on_clear_click,
                         [],
-                        [message, chatbot, messages],
+                        [message, chatbot, messages_gen],
                         queue=False,
                     )
     demo.queue()
@@ -300,6 +286,5 @@ if __name__ == "__main__":
     conn.commit()
 
     # load up our system prompt
-    system_message = SystemMessage(content=Path("prompts/system.prompt").read_text())
     human_message_prompt_template = HumanMessagePromptTemplate.from_template("{text}")
-    main(system_message, human_message_prompt_template)
+    main(human_message_prompt_template)
