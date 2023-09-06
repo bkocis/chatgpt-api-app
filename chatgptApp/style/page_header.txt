@@ -1,4 +1,5 @@
 <center>
-<a href="https://github.com/bkocis"><img src="https://i.ibb.co/bL78f3C/header.png" alt="header" border="0"></a>
+<a href="https://github.com/bkocis/chatgpt-api-app"><img src="" alt="source" border="0"></a>
+<a href="https://platform.openai.com/account/usage"><img src="" alt="openai-usage" border="0"></a>
 </center>
 <br>

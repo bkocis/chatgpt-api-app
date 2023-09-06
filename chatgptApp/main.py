@@ -184,6 +184,7 @@ def main(human_message_prompt_template):
         messages_gen = gr.State([SystemMessage(content=Path("prompts/system.prompt.general").read_text())])
         messages_py = gr.State([SystemMessage(content=Path("prompts/system.prompt.python").read_text())])
         messages_4pyanalyzer = gr.State([SystemMessage(content=Path("prompts/system.prompt.python-analyser").read_text())])
+        messages_unit_test = gr.State([SystemMessage(content=Path("prompts/system.prompt.python-unittest-suggertion").read_text())])
         kwargs = {
             "show_label": False,
             "height": 750
@@ -211,6 +212,17 @@ def main(human_message_prompt_template):
                         message_handler_4,
                         [chat, message, chatbot, messages_4pyanalyzer],
                         [chat, message, chatbot, messages_4pyanalyzer],
+                        queue=True,
+                    )
+
+            with gr.Tab("ChatGPT4-unitTest-suggestions"):
+                chatbot = gr.Chatbot(**kwargs)
+                with gr.Row():
+                    message = gr.Textbox(show_label=False, placeholder="write question here")
+                    message.submit(
+                        message_handler_4,
+                        [chat, message, chatbot, messages_unit_test],
+                        [chat, message, chatbot, messages_unit_test],
                         queue=True,
                     )
 
