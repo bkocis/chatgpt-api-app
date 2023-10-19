@@ -9,7 +9,7 @@ from threading import Thread
 from langchain.chat_models import ChatOpenAI
 from langchain.prompts import HumanMessagePromptTemplate
 from langchain.schema import AIMessage, BaseMessage, HumanMessage, SystemMessage
-from callback import QueueCallback
+from utils.callback import QueueCallback
 
 
 logging.basicConfig(
@@ -20,6 +20,8 @@ ChatHistory = List[str]
 
 
 def insert_into_db(message, content):
+    conn = sqlite3.connect(path_to_db, check_same_thread=False)
+    c = conn.cursor()
     c.execute("INSERT INTO chat_session_01 (question, answer) VALUES (?, ?)", (message, content))
     conn.commit()
     c.execute("select * from chat_session_01")
@@ -183,8 +185,10 @@ def main(human_message_prompt_template):
             ) as demo:
         messages_gen = gr.State([SystemMessage(content=Path("prompts/system.prompt.general").read_text())])
         messages_py = gr.State([SystemMessage(content=Path("prompts/system.prompt.python").read_text())])
-        messages_4pyanalyzer = gr.State([SystemMessage(content=Path("prompts/system.prompt.python-analyser").read_text())])
-        messages_unit_test = gr.State([SystemMessage(content=Path("prompts/system.prompt.python-unittest-suggertion").read_text())])
+        messages_4pyanalyzer = gr.State([SystemMessage(content=Path("prompts/system.prompt.python-analyser").
+                                                       read_text())])
+        messages_unit_test = gr.State([SystemMessage(content=Path("prompts/system.prompt.python-unittest-suggestion").
+                                                     read_text())])
         kwargs = {
             "show_label": False,
             "height": 750
