@@ -8,7 +8,7 @@ ENV PYTHONPATH /opt/chatgptApp
 RUN mkdir /opt/app && \
     mkdir /opt/resources
 
-COPY chatgptApp /opt/app
+COPY chatgptApp /opt/chatgptApp
 COPY ./requirements.txt /opt/app/requirements.txt
 
 RUN apt-get update && \
@@ -17,8 +17,8 @@ RUN apt-get update && \
     pip install --no-cache-dir setuptools wheel && \
     pip install --no-cache-dir -r /opt/app/requirements.txt
 
-WORKDIR /opt/app
-VOLUME /opt/app
+WORKDIR /opt/chatgptApp
+VOLUME /opt/chatgptApp
 EXPOSE 8083
 
 CMD ["python", "main.py"]
