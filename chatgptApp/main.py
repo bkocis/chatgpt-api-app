@@ -19,11 +19,11 @@ logging.basicConfig(
 ChatHistory = List[str]
 
 
-def insert_into_db(conn, DB_NAME, message, content):
+def insert_into_db(conn, table, message, content):
     c = conn.cursor()
-    c.execute(f"INSERT INTO {DB_NAME} (question, answer) VALUES (?, ?)", (message, content))
+    c.execute(f"INSERT INTO {table} (question, answer) VALUES (?, ?)", (message, content))
     conn.commit()
-    c.execute(f"select * from {DB_NAME}")
+    c.execute(f"select * from {table}")
     logging.info(f"{c.fetchall()}")
 
 
@@ -70,7 +70,7 @@ def message_handler_4(
     messages.append(AIMessage(content=content))
     logging.debug(f"reply = {content}")
     logging.info("Done!")
-    insert_into_db(conn, DB_NAME, message, content)
+    insert_into_db(conn, table, message, content)
     return chat, "", chatbot_messages, messages
 
 
@@ -117,7 +117,7 @@ def message_handler_3p5(
     messages.append(AIMessage(content=content))
     logging.debug(f"reply = {content}")
     logging.info("Done!")
-    insert_into_db(conn, DB_NAME, message, content)
+    insert_into_db(conn, table, message, content)
     return chat, "", chatbot_messages, messages
 
 
@@ -293,6 +293,7 @@ if __name__ == "__main__":
     MODELS = ["gpt-3.5-turbo", "gpt-4"]
     DEFAULT_TEMPERATURE = 0.1
     DB_NAME = "chat_sessions.db"
+    table = "chat_session_01"
     path_to_db = os.path.join(os.environ["PATH_TO_DB"], DB_NAME)
 
     conn = sqlite3.connect(path_to_db, check_same_thread=False)
