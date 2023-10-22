@@ -19,12 +19,11 @@ logging.basicConfig(
 ChatHistory = List[str]
 
 
-def insert_into_db(message, content):
-    conn = sqlite3.connect(path_to_db, check_same_thread=False)
+def insert_into_db(conn, DB_NAME, message, content):
     c = conn.cursor()
-    c.execute("INSERT INTO chat_session_01 (question, answer) VALUES (?, ?)", (message, content))
+    c.execute(f"INSERT INTO {DB_NAME} (question, answer) VALUES (?, ?)", (message, content))
     conn.commit()
-    c.execute("select * from chat_session_01")
+    c.execute(f"select * from {DB_NAME}")
     logging.info(f"{c.fetchall()}")
 
 
@@ -71,7 +70,7 @@ def message_handler_4(
     messages.append(AIMessage(content=content))
     logging.debug(f"reply = {content}")
     logging.info("Done!")
-    insert_into_db(message, content)
+    insert_into_db(conn, DB_NAME, message, content)
     return chat, "", chatbot_messages, messages
 
 
@@ -118,7 +117,7 @@ def message_handler_3p5(
     messages.append(AIMessage(content=content))
     logging.debug(f"reply = {content}")
     logging.info("Done!")
-    insert_into_db(message, content)
+    insert_into_db(conn, DB_NAME, message, content)
     return chat, "", chatbot_messages, messages
 
 
