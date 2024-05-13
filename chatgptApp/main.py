@@ -27,6 +27,53 @@ def insert_into_db(conn, table, message, content):
     logging.info(f"{c.fetchall()}")
 
 
+def message_handler_4o(
+        chat: Optional[ChatOpenAI],
+        message: str,
+        chatbot_messages: ChatHistory,
+        messages: List[BaseMessage]
+) -> Tuple[ChatOpenAI, str, ChatHistory, List[BaseMessage]]:
+    if chat is None:
+        queue = Queue()
+        chat = ChatOpenAI(
+            model_name='gpt-4o',
+            temperature=DEFAULT_TEMPERATURE,
+            streaming=True,
+            callbacks=([QueueCallback(queue)]),
+        )
+    else:
+        queue = chat.callbacks[0].queue
+
+    job_done = object()
+
+    logging.info("asking question to GPT")
+    messages.append(HumanMessage(content=message))
+    chatbot_messages.append((message, ""))
+
+    def task():
+        chat(messages)
+        queue.put(job_done)
+
+    t = Thread(target=task)
+    t.start()
+    content = ""
+    while True:
+        try:
+            next_token = queue.get(True, timeout=1)
+            if next_token is job_done:
+                break
+            content += next_token
+            chatbot_messages[-1] = (message, content)
+            yield chat, "", chatbot_messages, messages
+        except Empty:
+            continue
+    messages.append(AIMessage(content=content))
+    logging.debug(f"reply = {content}")
+    logging.info("Done!")
+    insert_into_db(conn, table, message, content)
+    return chat, "", chatbot_messages, messages
+
+
 def message_handler_4(
         chat: Optional[ChatOpenAI],
         message: str,
@@ -196,6 +243,17 @@ def main(human_message_prompt_template):
 
         with gr.Column(elem_id="col_container"):
             gr.Markdown(page_subtitle, elem_id="centerImage")
+            with gr.Tab("GPT4o-py"):
+                chatbot = gr.Chatbot(**kwargs)
+                with gr.Row():
+                    message = gr.Textbox(show_label=False, placeholder="write question here")
+                    message.submit(
+                        message_handler_4o,
+                        [chat, message, chatbot, messages_py],
+                        [chat, message, chatbot, messages_py],
+                        queue=True,
+                    )
+
             with gr.Tab("ChatGPT4-py"):
                 chatbot = gr.Chatbot(**kwargs)
                 with gr.Row():
