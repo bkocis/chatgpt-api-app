@@ -343,7 +343,7 @@ def main(human_message_prompt_template):
         # share=True,
         server_name="0.0.0.0",
         server_port=8083,
-        # root_path="/openai-chatgpt-gradio-app")
+        root_path="/openai-chatgpt-gradio-app"
     )
 
 

@@ -39,7 +39,7 @@ run_app:
 deploy_headless:
 	docker build --tag=${APP_NAME} --build-arg OPENAI_API_KEY=${OPENAI_API_KEY} .
 	# docker run -dit -v ${VOLUME_NAME}:/opt/app -p ${PORT}:${PORT} ${APP_NAME}
-	docker run -dit -v ${DB_PATH_ON_HOST}:/opt/resources -p ${PORT}:${PORT} -e PATH_TO_DB="/opt/resources" ${APP_NAME}
+	docker run --name chatgpt_app -dit -v ${DB_PATH_ON_HOST}:/opt/resources -p ${PORT}:${PORT} -e PATH_TO_DB="/opt/resources" ${APP_NAME}
 git_push:
 	flake8
 	git add .

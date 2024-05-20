@@ -1,6 +1,6 @@
 openai
 gradio==3.40.1
-langchain
+langchain==0.0.195
 chromadb
 tiktoken
 unstructured
